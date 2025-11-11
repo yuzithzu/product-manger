@@ -134,6 +134,7 @@
         <h2>Product Manager</h2>
         <div class="controls">
           <input id="productName" placeholder="Product name (e.g. girl)" />
+          <input id="productGSM" type="text" placeholder="GSM (e.g. 180gsm)" />
           <input id="productPrice" type="number" step="0.01" placeholder="Price (₱)" />
           <button id="addUpdateBtn" class="btn">Add / Update</button>
           <button id="clearAllBtn" class="btn ghost">Clear</button>
@@ -153,6 +154,7 @@
               <th>Material</th>
               <th>Pcs</th>
               <th>Description</th>
+              <th>GSM</th>
               <th>Price</th>
               <th>Per Sheet</th>
               <th></th>
@@ -188,6 +190,7 @@
   const PRODUCTS_KEY = "pm_products_v1";
   let products = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "[]");
   const productName = document.getElementById("productName");
+  const productGSM = document.getElementById("productGSM");
   const productPrice = document.getElementById("productPrice");
   const productList = document.getElementById("productList");
   const totalCount = document.getElementById("totalCount");
@@ -210,7 +213,7 @@
       div.innerHTML = `
         <input type="checkbox" data-index="${i}" />
         <div style="flex:1;margin-left:8px;">
-          <div><strong>${p.name || "(no name)"}</strong></div>
+          <div><strong>${p.name || "(no name)"}</strong> <span class="muted" style="font-size:12px;">(${p.gsm || "no GSM"})</span></div>
           <div class="muted" style="font-size:13px;">₱ ${fmt(p.price)}</div>
         </div>
         <button class="btn ghost" data-edit="${i}">Edit</button>
@@ -223,6 +226,7 @@
       btn.onclick = () => {
         const i = btn.dataset.edit;
         productName.value = products[i].name;
+        productGSM.value = products[i].gsm || "";
         productPrice.value = products[i].price;
         addUpdateBtn.dataset.editIndex = i;
         addUpdateBtn.textContent = "Update Product";
@@ -232,14 +236,16 @@
   
   addUpdateBtn.onclick = () => {
     const name = productName.value.trim();
+    const gsm = productGSM.value.trim();
     const price = parseFloat(productPrice.value) || 0;
     if (!name) return alert("Enter product name");
+    const data = { name, gsm, price };
     if (addUpdateBtn.dataset.editIndex) {
-      products[addUpdateBtn.dataset.editIndex] = { name, price };
+      products[addUpdateBtn.dataset.editIndex] = data;
       delete addUpdateBtn.dataset.editIndex;
       addUpdateBtn.textContent = "Add / Update";
-    } else products.push({ name, price });
-    productName.value = productPrice.value = "";
+    } else products.push(data);
+    productName.value = productGSM.value = productPrice.value = "";
     saveProducts();
   };
   
@@ -268,7 +274,6 @@
   const taxDisplay = document.getElementById("taxDisplay");
   const markupContainer = document.getElementById("markupContainer");
   
-  // ✅ Remove fixed tax rate and add manual tax input
   let manualTax = 0;
   const taxInput = document.createElement("input");
   taxInput.type = "number";
@@ -295,10 +300,9 @@
       const row = document.createElement("div");
       row.className = "calc-row";
   
-      // ✅ Added searchable select using datalist
       let opts = "";
       products.forEach((p, idx) => {
-        opts += `<option value="${p.name}" data-idx="${idx}">₱${fmt(p.price)}</option>`;
+        opts += `<option value="${p.name}" data-idx="${idx}">₱${fmt(p.price)} (${p.gsm || "no GSM"})</option>`;
       });
   
       row.innerHTML = `
@@ -307,6 +311,7 @@
   
         <input class="r-pcs" data-i="${i}" type="number" min="0" value="${r.pcs||''}" placeholder="PCS" />
         <input class="r-desc" data-i="${i}" placeholder="Description" value="${r.desc||''}" />
+        <input class="r-gsm" data-i="${i}" placeholder="GSM" value="${r.gsm||''}" />
         <input class="r-price" data-i="${i}" type="number" step="0.01" value="${r.price||''}" placeholder="₱" />
         <div style="width:90px;font-weight:700;">₱ <span class="per-sheet">${fmt(computePerSheet(r.price, r.pcs))}</span></div>
         <div class="row-actions">
@@ -317,15 +322,17 @@
       rowsContainer.appendChild(row);
     });
   
-    // ✅ Auto-fill price when material selected
     rowsContainer.querySelectorAll(".r-material").forEach(inp => {
       inp.addEventListener("change", () => {
         const i = inp.dataset.i;
         const prod = products.find(p => p.name.toLowerCase() === inp.value.toLowerCase());
         if (prod) {
           const priceInput = rowsContainer.querySelector(`.r-price[data-i="${i}"]`);
+          const gsmInput = rowsContainer.querySelector(`.r-gsm[data-i="${i}"]`);
           priceInput.value = prod.price;
+          gsmInput.value = prod.gsm || "";
           rows[i].name = prod.name;
+          rows[i].gsm = prod.gsm || "";
           rows[i].price = prod.price;
           rows[i].materialId = products.indexOf(prod);
           saveRows();
@@ -340,6 +347,7 @@
         const box = btn.closest(".calc-row");
         rows[i].pcs = Number(box.querySelector(".r-pcs").value) || 0;
         rows[i].desc = box.querySelector(".r-desc").value;
+        rows[i].gsm = box.querySelector(".r-gsm").value;
         rows[i].price = Number(box.querySelector(".r-price").value) || 0;
         rows[i].name = box.querySelector(".r-material").value;
         saveRows();
@@ -364,7 +372,6 @@
       if(el) el.textContent = fmt(per);
     });
   
-    // ✅ Use manual tax value instead of fixed 12%
     const tax = manualTax;
     taxDisplay.textContent = fmt(tax);
     const grand = total + tax;
@@ -384,20 +391,12 @@
       total10+=m10; total20+=m20; total30+=m30;
       const div=document.createElement("div");
       div.className="markup-item";
-      div.innerHTML=`
-        <div><strong>Row ${i+1}:</strong> ${name}</div>
-        <div>10% → ₱ ${fmt(m10)}<br>20% → ₱ ${fmt(m20)}<br>30% → ₱ ${fmt(m30)}</div>
+      div.innerHTML = `
+        <div>${name}: </div>
+        <div>10%: ₱${fmt(m10)} | 20%: ₱${fmt(m20)} | 30%: ₱${fmt(m30)}</div>
       `;
       markupContainer.appendChild(div);
     });
-    const gdiv=document.createElement("div");
-    gdiv.className="markup-item";
-    gdiv.innerHTML=`
-      <div class="total-divider"></div>
-      <div><strong>TOTAL (All Rows + Tax)</strong></div>
-      <div>10% → ₱ ${fmt(total10 + tax)}<br>20% → ₱ ${fmt(total20 + tax)}<br>30% → ₱ ${fmt(total30 + tax)}</div>
-    `;
-    markupContainer.appendChild(gdiv);
   }
   
   addRowBtn.onclick = () => {
@@ -409,4 +408,5 @@
   renderRows();
   computeAll();
   </script>
-
+</body>
+</html>
