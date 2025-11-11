@@ -116,7 +116,7 @@
       display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);flex-wrap:wrap;margin-bottom:8px
     }
     .calc-row input, .calc-row select{padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)}
-    .calc-row .row-actions{display:flex;gap:6px}
+    .calc-row .row-actions{display:flex;gap:6px;align-items:center}
 
     /* bottom area (materials summary + markup) */
     .bottom{
@@ -151,6 +151,11 @@
     .right{text-align:right}
     .center{text-align:center}
     input[type=number]{-moz-appearance:textfield}
+    
+    /* Fix for delete button spacing */
+    .calc-row .row-actions {
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
@@ -325,6 +330,7 @@
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn ghost small edit-btn" data-edit="${idx}">Edit</button>
+            <button class="btn ghost small delete-btn" data-delete="${idx}">Delete</button>
           </div>
         `;
         productListEl.appendChild(div);
@@ -345,6 +351,17 @@
             addUpdateBtn.dataset.editIndex = originalIndex;
             addUpdateBtn.textContent = "Update Product";
             window.scrollTo({top:0,behavior:"smooth"});
+          }
+        };
+      });
+
+      // Attach event listeners to delete buttons
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.onclick = () => {
+          const idx = Number(btn.dataset.delete);
+          if(confirm("Delete this product?")) {
+            products.splice(idx, 1);
+            saveProducts();
           }
         };
       });
@@ -431,7 +448,6 @@
           <input class="r-tax" data-i="${i}" type="number" step="0.01" min="0" value="${r.tax||0}" placeholder="Tax %" style="width:90px" />
           <div style="width:150px;font-weight:700">Per-piece: ₱ <span class="per-sheet">${fmt(computePerPiece(r.price, r.pcs))}</span></div>
           <div class="row-actions">
-            <button class="btn ghost small save-btn" data-save="${i}">Save</button>
             <button class="btn ghost small delete-btn" data-del="${i}">Delete</button>
           </div>
         `;
@@ -460,22 +476,6 @@
             saveRows();
           }
         });
-      });
-
-      // Attach event listeners for save buttons
-      document.querySelectorAll(".save-btn").forEach(btn => {
-        btn.onclick = () => {
-          const i = Number(btn.dataset.save);
-          const box = btn.closest(".calc-row");
-          rows[i].pcs = Number(box.querySelector(".r-pcs").value) || 0;
-          rows[i].desc = box.querySelector(".r-desc").value;
-          rows[i].gsm = box.querySelector(".r-gsm").value;
-          rows[i].price = Number(box.querySelector(".r-price").value) || 0;
-          rows[i].name = box.querySelector(".r-material").value;
-          rows[i].tax = Number(box.querySelector(".r-tax").value) || 0;
-          saveRows();
-          renderRows();
-        };
       });
 
       // Attach event listeners for delete buttons
