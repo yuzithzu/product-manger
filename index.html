@@ -3,437 +3,154 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Product Manager & Materials Pricing Calculator</title>
+  <title>Product Manager & Materials Pricing Calculator (Integrated)</title>
   <style>
-    :root {
+    /* ---------------------------
+       THEME & LAYOUT
+    ----------------------------*/
+    :root{
       --bg: #0e1423;
-      --card: rgba(255, 255, 255, 0.03);
+      --card: rgba(255,255,255,0.03);
       --accent: #6ee7b7;
       --muted: #94a3b8;
       --danger: #ff6b6b;
       --text: #e6eef8;
+      --header-blue: #0b63e6;
+      --pdf-blue: #0b63e6;
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: Inter, sans-serif;
-      margin: 0;
-      background: linear-gradient(180deg, #071024 0%, #0a1328 100%);
-      color: var(--text);
-      padding: 10px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#071024 0%,#0a1328 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:12px;
     }
-    .wrap { 
-      max-width: 1200px; 
-      margin: 0 auto; 
-      padding: 10px; 
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:10px;
     }
-    header { 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      margin-bottom: 15px; 
-      flex-wrap: wrap;
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
     }
-    header h1 { 
-      font-size: 18px; 
-      margin: 0; 
-      flex: 1;
+    header h1{margin:0;font-size:18px}
+    .muted{color:var(--muted);font-size:12px}
+    .chip{color:var(--accent);font-size:12px}
+
+    /* Grid */
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
     }
-    header .muted { 
-      font-size: 12px; 
-      color: var(--muted); 
-      margin-top: 5px;
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.05);
+      box-shadow:0 6px 18px rgba(2,6,23,0.6);
+    }
+    .card h2{margin:0 0 8px 0;font-size:15px}
+
+    /* Controls */
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .controls input, .controls select{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:8px;
+      padding:8px;
+      color:var(--text);
+      min-width:110px;
+      font-size:14px;
+    }
+    .btn{
+      background:linear-gradient(90deg,var(--accent),#3dd6b6);
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      color:#042018;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .12s ease,opacity .12s ease;
+      min-width:80px;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--accent)}
+    .btn.danger{background:var(--danger);color:#fff}
+
+    /* Product list */
+    .list{max-height:220px;overflow:auto;margin-top:6px}
+    .item{
+      display:flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;margin-bottom:8px;
+      justify-content:space-between;
+    }
+    .item .meta{flex:1;margin-left:8px}
+
+    /* Table base */
+    .table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+    .table th{
+      background:var(--header-blue);color:#fff;padding:8px;text-align:left;font-weight:700;font-size:12px
+    }
+    .table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+    .table tfoot td{background:rgba(255,255,255,0.03);font-weight:700}
+
+    /* Rows container */
+    .rows{max-height:320px;overflow:auto;margin-top:8px}
+    .calc-row{
+      display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);flex-wrap:wrap;margin-bottom:8px
+    }
+    .calc-row input, .calc-row select{padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)}
+    .calc-row .row-actions{display:flex;gap:6px}
+
+    /* bottom area (materials summary + markup) */
+    .bottom{
+      display:flex;gap:12px;margin-top:12px;align-items:flex-start;flex-wrap:wrap;
+    }
+    .calc-summary{flex:1;min-width:260px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px}
+    .markup-section{width:380px;min-width:260px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px}
+    @media (max-width:900px){ .markup-section{width:100%} .calc-summary{width:100%} }
+
+    /* Toggle full-right */
+    .full-right .calc-summary{display:none}
+    .full-right .markup-section{width:100%}
+
+    /* small adjustments */
+    .small{font-size:12px;padding:6px 8px}
+    .muted-small{color:var(--muted);font-size:12px}
+
+    /* printable area style (for print/PDF) */
+    @media print{
+      body{background:#fff;color:#000}
+      .wrap{max-width:100%;padding:0}
+      header, .nav, .btn, .controls, .rows, .item, .search-container { display:none !important; } /* hide interactive UI */
+      .print-area{display:block}
+      .no-print{display:none}
+      .print-table{width:100%;border-collapse:collapse}
+      .print-table th{background:var(--pdf-blue);color:#fff;padding:8px}
+      .print-table td{padding:8px;border:1px solid #ddd}
+      .center{text-align:center}
     }
 
-    .grid { 
-      display: grid; 
-      gap: 15px; 
-      grid-template-columns: 1fr 1fr; 
-    }
-    @media (max-width: 768px) { 
-      .grid { 
-        grid-template-columns: 1fr; 
-      }
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 12px rgba(2,6,23,0.5);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(2,6,23,0.7);
-    }
-    .card h2 { 
-      margin-top: 0; 
-      font-size: 15px; 
-    }
-
-    .controls { 
-      display: flex; 
-      flex-wrap: wrap; 
-      gap: 6px; 
-      margin-bottom: 10px; 
-    }
-    .controls input, select {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      color: inherit;
-      border-radius: 8px;
-      padding: 8px;
-      flex: 1;
-      min-width: 120px;
-      font-size: 14px;
-    }
-    .btn {
-      background: linear-gradient(90deg, var(--accent), #3dd6b6);
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      color: #042018;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.2s;
-      font-size: 14px;
-      min-width: 80px;
-    }
-    .btn:hover { 
-      opacity: 0.9; 
-      transform: scale(1.05);
-    }
-    .btn.ghost {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--accent);
-    }
-    .btn.danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .list { 
-      max-height: 180px; 
-      overflow-y: auto; 
-      margin-top: 8px; 
-    }
-    .item {
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between;
-      padding: 8px; 
-      background: rgba(255,255,255,0.04);
-      border-radius: 8px; 
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-    .item > div {
-      flex: 1;
-      margin-right: 8px;
-    }
-    .item .btn {
-      padding: 6px 10px;
-      font-size: 12px;
-    }
-
-    .table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 10px; 
-      font-size: 12px;
-    }
-    .table th { 
-      text-align: left; 
-      color: var(--muted); 
-      font-size: 11px; 
-      padding-bottom: 6px; 
-    }
-
-    .rows { 
-      max-height: 300px; 
-      overflow-y: auto; 
-      margin-top: 8px; 
-    }
-    .calc-row {
-      display: flex; 
-      align-items: center; 
-      gap: 6px;
-      padding: 6px; 
-      border-radius: 8px; 
-      margin-bottom: 6px;
-      background: rgba(255,255,255,0.04);
-      flex-wrap: wrap;
-    }
-    .calc-row input, .calc-row select {
-      flex: 1; 
-      border-radius: 6px; 
-      padding: 6px;
-      background: transparent; 
-      border: 1px solid rgba(255,255,255,0.08); 
-      color: inherit;
-      font-size: 13px;
-      min-width: 80px;
-    }
-    .calc-row .row-actions {
-      display: flex;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .calc-row .row-actions button { 
-      font-size: 11px; 
-      padding: 4px 8px; 
-    }
-
-    .bottom {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    .calc-summary {
-      background: rgba(255,255,255,0.02);
-      padding: 10px;
-      border-radius: 8px;
-      min-width: 200px;
-      font-size: 13px;
-    }
-    .calc-summary div { 
-      margin-bottom: 4px; 
-    }
-
-    .markup-section {
-      background: rgba(255,255,255,0.02);
-      padding: 10px;
-      border-radius: 8px;
-      flex: 1;
-      min-width: 200px;
-      font-size: 13px;
-    }
-    .markup-item { 
-      border-bottom: 1px solid rgba(255,255,255,0.06); 
-      padding: 5px 0; 
-    }
-    .markup-item:last-child { 
-      border: none; 
-    }
-
-    .total-divider { 
-      border-top: 1px solid rgba(255,255,255,0.1); 
-      margin: 8px 0; 
-    }
-    footer { 
-      text-align: center; 
-      color: var(--muted); 
-      font-size: 12px; 
-      margin-top: 15px; 
-      padding: 10px;
-    }
-    
-    /* Navigation buttons - Only show on mobile */
-    .nav-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 15px 0;
-      position: sticky;
-      top: 10px;
-      z-index: 100;
-      background: var(--bg);
-      padding: 10px 0;
-      border-radius: 12px;
-    }
-    .nav-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--accent);
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-      min-width: 120px;
-    }
-    .nav-btn:hover {
-      background: rgba(110, 231, 183, 0.2);
-      transform: translateY(-2px);
-    }
-    
-    /* Tax input styling */
-    .tax-container {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .tax-column {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .tax-column label {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    
-    .tax-column input {
-      padding: 8px;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white;
-      font-size: 14px;
-    }
-    
-    /* Custom layout for the specific requirement */
-    .left-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .right-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .tax-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    
-    .tax-input-group label {
-      font-weight: 600;
-      font-size: 13px;
-    }
-    
-    .tax-input-group input {
-      padding: 8px;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white;
-      font-size: 14px;
-    }
-    
-    .total-display {
-      font-weight: bold;
-      margin-top: 5px;
-    }
-    
-    /* Search box styling */
-    .search-container {
-      margin-bottom: 10px;
-      position: relative;
-    }
-    
-    .search-input {
-      width: 100%;
-      padding: 8px 12px 8px 30px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      color: inherit;
-      font-size: 14px;
-    }
-    
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-    }
-    
-    /* Hide cards on mobile except when active */
-    @media (max-width: 768px) {
-      .card {
-        display: none;
-      }
-      
-      .card.active {
-        display: block;
-      }
-      
-      .nav-buttons {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        background: rgba(14, 20, 35, 0.95);
-        backdrop-filter: blur(10px);
-        margin: 0;
-        padding: 15px 0;
-        border-radius: 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      }
-      
-      .wrap {
-        padding-top: 80px;
-      }
-    }
-    
-    /* Desktop view */
-    @media (min-width: 769px) {
-      .nav-buttons {
-        display: none;
-      }
-    }
-    
-    /* Mobile adjustments */
-    @media (max-width: 480px) {
-      .wrap {
-        padding: 5px;
-      }
-      
-      .controls {
-        flex-direction: column;
-      }
-      
-      .controls input, select {
-        min-width: 100%;
-      }
-      
-      .item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .item > div {
-        margin-right: 0;
-        margin-bottom: 5px;
-      }
-      
-      .calc-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      
-      .calc-row .row-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
-      
-      .calc-row .row-actions button {
-        flex: 1;
-        max-width: 120px;
-      }
-      
-      .bottom {
-        flex-direction: column;
-      }
-      
-      .calc-summary, .markup-section {
-        width: 100%;
-      }
-    }
+    /* helper */
+    .right{text-align:right}
+    .center{text-align:center}
+    input[type=number]{-moz-appearance:textfield}
   </style>
 </head>
 <body>
@@ -441,381 +158,764 @@
     <header>
       <div>
         <h1>🛒 Product & Materials Calculator</h1>
-        <span class="muted">Auto-save in your browser — Dark Glass Design</span>
+        <div class="muted">Auto-save in browser · Dark Glass Design · Integrated version</div>
       </div>
-      <div class="chip" style="color: var(--accent); font-size: 12px;">Auto-save: ON</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="chip">Auto-save: ON</div>
+        <button id="exportBtn" class="btn small no-print">Export PDF</button>
+      </div>
     </header>
 
-    <!-- Navigation buttons - Only visible on mobile -->
-    <div class="nav-buttons">
-      <button class="nav-btn" onclick="showSection('product-manager')">Product Manager</button>
-      <button class="nav-btn" onclick="showSection('materials-calculator')">Materials Calculator</button>
-    </div>
-
     <div class="grid">
-      <section id="product-manager" class="card active">
+      <!-- Product Manager -->
+      <section class="card" id="product-manager">
         <h2>Product Manager</h2>
-        <div class="search-container">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" class="search-input" placeholder="Search products..." />
-        </div>
+
         <div class="controls">
-          <input id="productName" placeholder="Product name (e.g. girl)" />
-          <input id="productGSM" type="text" placeholder="GSM (e.g. 180gsm)" />
+          <input id="productName" placeholder="Product name (e.g. Paper A4)" />
+          <input id="productGSM" placeholder="GSM (e.g. 180gsm)" />
           <input id="productPrice" type="number" step="0.01" placeholder="Price (₱)" />
           <button id="addUpdateBtn" class="btn">Add / Update</button>
           <button id="clearAllBtn" class="btn ghost">Clear</button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <button id="deleteSelectedBtn" class="btn danger">Delete Selected</button>
-          <div class="muted">Total: <span id="totalCount">0</span></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="searchInput" placeholder="Search products..." style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)" />
+            <button id="backToFull" class="btn small ghost no-print">Back</button>
+          </div>
+          <div class="muted-small">Total products: <span id="totalCount">0</span></div>
         </div>
+
         <div id="productList" class="list"></div>
       </section>
 
-      <section id="materials-calculator" class="card">
+      <!-- Materials & Calculator -->
+      <section class="card" id="materials-calculator">
         <h2>📘 Materials Calculator</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Material</th>
-              <th>Pcs</th>
-              <th>Description</th>
-              <th>GSM</th>
-              <th>Price</th>
-              <th>Per Sheet</th>
-              <th></th>
-            </tr>
-          </thead>
-        </table>
-        <div id="rowsContainer" class="rows"></div>
-        <button id="addRowBtn" class="btn">+ Add Row</button>
 
-        <div class="bottom">
+        <!-- rows input + datalist populated from products -->
+        <div id="rowsContainer" class="rows" aria-live="polite"></div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="addRowBtn" class="btn">+ Add Row</button>
+          <button id="clearRowsBtn" class="btn ghost">Clear Rows</button>
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:8px">
+            <input id="contactNumber" placeholder="Contact number for PDF" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)" />
+            <button id="toggleRightBtn" class="btn small">Show Markup</button>
+          </div>
+        </div>
+
+        <div id="bottomArea" class="bottom">
           <div class="calc-summary">
-            <div><strong>Total Materials:</strong> ₱ <span id="materialsTotal">0.00</span></div>
-            
-            <!-- Left side: Materials Tax -->
-            <div class="left-section">
-              <div class="tax-input-group">
-                <label>Materials Tax (%)</label>
-                <input type="number" id="materialsTax" min="0" step="0.01" placeholder="Enter tax percentage" />
-              </div>
-              
-              <div class="total-display">
-                <strong>Total (₱):</strong> ₱ <span id="totalWithTax">0.00</span>
-              </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Materials Computation</strong></div>
+              <div class="muted-small">Each row has tax input; per-piece shown in row</div>
             </div>
+
+            <table id="materialsTable" class="table" style="margin-top:10px">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th class="center">PCS</th>
+                  <th class="right">Price (₱)</th>
+                  <th class="center">Per-piece (₱)</th>
+                  <th class="center">Tax (%)</th>
+                  <th class="right">Total w/ Tax (₱)</th>
+                </tr>
+              </thead>
+              <tbody id="materialsTableBody"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="right">Total (base):</td>
+                  <td id="totalPerPieceCell" class="right">₱0.00</td>
+                  <td class="right">Total Tax:</td>
+                  <td id="totalTaxCell" class="right">₱0.00</td>
+                </tr>
+                <tr>
+                  <td colspan="5" class="right">Grand Total (with tax):</td>
+                  <td id="grandTotalWithTax" class="right">₱0.00</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
           <div class="markup-section">
-            <div><strong>Markup Computations</strong></div>
-            <div id="markupContainer"></div>
-            
-            <!-- Right side: Markup Tax -->
-            <div class="right-section">
-              <div class="tax-input-group">
-                <label>Markup Tax (%)</label>
-                <input type="number" id="markupTax" min="0" step="0.01" placeholder="Enter tax percentage" />
-              </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div><strong>Markup Computations</strong></div>
+              <div class="muted-small">10% / 20% / 30%</div>
             </div>
+
+            <table id="markupTable" class="table">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th class="right">10%</th>
+                  <th class="right">20%</th>
+                  <th class="right">30%</th>
+                </tr>
+              </thead>
+              <tbody id="markupContainer"></tbody>
+              <tfoot>
+                <tr style="font-weight:700">
+                  <td>Grand Total</td>
+                  <td id="total10" class="right">₱0.00</td>
+                  <td id="total20" class="right">₱0.00</td>
+                  <td id="total30" class="right">₱0.00</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
       </section>
     </div>
 
-    <footer>Built for mobile & desktop · Auto-saving · Modern layout</footer>
+    <footer style="text-align:center;margin-top:12px" class="muted-small">Built for mobile & desktop · Auto-saving · Modern layout</footer>
   </div>
 
+  <!-- Printable view holder (hidden unless printing) -->
+  <div id="printHolder" style="display:none"></div>
+
   <script>
-  const fmt = n => Number(n||0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  
-  // === PRODUCTS ===
-  const PRODUCTS_KEY = "pm_products_v1";
-  let products = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "[]");
-  const productName = document.getElementById("productName");
-  const productGSM = document.getElementById("productGSM");
-  const productPrice = document.getElementById("productPrice");
-  const productList = document.getElementById("productList");
-  const totalCount = document.getElementById("totalCount");
-  const addUpdateBtn = document.getElementById("addUpdateBtn");
-  const clearAllBtn = document.getElementById("clearAllBtn");
-  const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
-  const searchInput = document.getElementById("searchInput");
-  
-  function saveProducts() {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-    renderProducts();
-    renderRows();
-    computeAll();
-  }
-  
-  function renderProducts() {
-    // Filter products based on search term
-    const searchTerm = searchInput.value.toLowerCase();
-    const filteredProducts = products.filter(p => 
-      p.name.toLowerCase().includes(searchTerm) || 
-      (p.gsm && p.gsm.toLowerCase().includes(searchTerm))
-    );
-    
-    productList.innerHTML = "";
-    filteredProducts.forEach((p, i) => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <input type="checkbox" data-index="${i}" />
-        <div style="flex:1;margin-left:8px;">
-          <div><strong>${p.name || "(no name)"}</strong> <span class="muted" style="font-size:12px;">(${p.gsm || "no GSM"})</span></div>
-          <div class="muted" style="font-size:13px;">₱ ${fmt(p.price)}</div>
-        </div>
-        <button class="btn ghost" data-edit="${i}">Edit</button>
-      `;
-      productList.appendChild(div);
-    });
-    totalCount.textContent = filteredProducts.length;
-  
-    productList.querySelectorAll("[data-edit]").forEach(btn => {
-      btn.onclick = () => {
-        const i = btn.dataset.edit;
-        // Adjust index to match original array
-        const originalIndex = products.findIndex(p => 
-          p.name === filteredProducts[i].name && 
-          p.gsm === filteredProducts[i].gsm && 
-          p.price === filteredProducts[i].price
-        );
-        productName.value = products[originalIndex].name;
-        productGSM.value = products[originalIndex].gsm || "";
-        productPrice.value = products[originalIndex].price;
-        addUpdateBtn.dataset.editIndex = originalIndex;
-        addUpdateBtn.textContent = "Update Product";
-      };
-    });
-  }
-  
-  // Add search functionality
-  searchInput.addEventListener('input', renderProducts);
-  
-  addUpdateBtn.onclick = () => {
-    const name = productName.value.trim();
-    const gsm = productGSM.value.trim();
-    const price = parseFloat(productPrice.value) || 0;
-    if (!name) return alert("Enter product name");
-    const data = { name, gsm, price };
-    if (addUpdateBtn.dataset.editIndex) {
-      products[addUpdateBtn.dataset.editIndex] = data;
-      delete addUpdateBtn.dataset.editIndex;
-      addUpdateBtn.textContent = "Add / Update";
-    } else products.push(data);
-    productName.value = productGSM.value = productPrice.value = "";
-    saveProducts();
-  };
-  
-  clearAllBtn.onclick = () => {
-    if (confirm("Clear all products?")) {
-      products = [];
-      saveProducts();
+    /**************************************************************************
+     * Utilities
+     **************************************************************************/
+    const fmt = n => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // localStorage keys
+    const PRODUCTS_KEY = "pm_products_v1_full";
+    const ROWS_KEY = "pm_materials_v1_full";
+
+    /**************************************************************************
+     * Product Manager
+     **************************************************************************/
+    let products = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "[]");
+    const productListEl = document.getElementById("productList");
+    const productNameEl = document.getElementById("productName");
+    const productGSMEl = document.getElementById("productGSM");
+    const productPriceEl = document.getElementById("productPrice");
+    const addUpdateBtn = document.getElementById("addUpdateBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const totalCountEl = document.getElementById("totalCount");
+    const searchInput = document.getElementById("searchInput");
+    const backToFullBtn = document.getElementById("backToFull");
+
+    function saveProducts(){
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      renderProducts();
+      renderRows(); // update datalists
+      computeAll();
     }
-  };
-  
-  deleteSelectedBtn.onclick = () => {
-    const checked = [...productList.querySelectorAll("input[type=checkbox]:checked")];
-    checked.sort((a,b)=>b.dataset.index - a.dataset.index).forEach(ch => {
-      const index = ch.dataset.index;
-      // Find actual index in original array
-      const originalIndex = products.findIndex(p => 
-        p.name === products[index].name && 
-        p.gsm === products[index].gsm && 
-        p.price === products[index].price
-      );
-      products.splice(originalIndex, 1);
-    });
-    saveProducts();
-  };
-  
-  renderProducts();
-  
-  // === MATERIALS ===
-  const ROWS_KEY = "pm_materials_v1";
-  let rows = JSON.parse(localStorage.getItem(ROWS_KEY) || "[]");
-  const rowsContainer = document.getElementById("rowsContainer");
-  const addRowBtn = document.getElementById("addRowBtn");
-  const materialsTotalEl = document.getElementById("materialsTotal");
-  const totalWithTaxEl = document.getElementById("totalWithTax");
-  const markupContainer = document.getElementById("markupContainer");
-  
-  // Separate tax variables
-  let materialsTax = 0;
-  let markupTax = 0;
-  
-  // Get tax input elements
-  const materialsTaxInput = document.getElementById("materialsTax");
-  const markupTaxInput = document.getElementById("markupTax");
-  
-  // Initialize tax inputs
-  materialsTaxInput.oninput = () => { 
-    materialsTax = parseFloat(materialsTaxInput.value) || 0; 
-    computeAll(); 
-  };
-  
-  markupTaxInput.oninput = () => { 
-    markupTax = parseFloat(markupTaxInput.value) || 0; 
-    computeAll(); 
-  };
-  
-  function saveRows() {
-    localStorage.setItem(ROWS_KEY, JSON.stringify(rows));
-    computeAll();
-  }
-  
-  function computePerSheet(price, pcs) {
-    pcs = Number(pcs) || 1;
-    return pcs === 0 ? 0 : (Number(price || 0) / pcs);
-  }
-  
-  function renderRows() {
-    rowsContainer.innerHTML = "";
-    rows.forEach((r, i) => {
-      const row = document.createElement("div");
-      row.className = "calc-row";
-  
-      let opts = "";
-      products.forEach((p, idx) => {
-        opts += `<option value="${p.name}" data-idx="${idx}">₱${fmt(p.price)} (${p.gsm || "no GSM"})</option>`;
+
+    function renderProducts(){
+      const q = (searchInput.value || "").toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(q) || (p.gsm && p.gsm.toLowerCase().includes(q)));
+      productListEl.innerHTML = "";
+      filtered.forEach((p, idx) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" data-index="${idx}" />
+            <div class="meta">
+              <div style="font-weight:700">${escapeHtml(p.name)}</div>
+              <div class="muted-small">₱ ${fmt(p.price)} · ${escapeHtml(p.gsm || "")}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn ghost small edit-btn" data-edit="${idx}">Edit</button>
+          </div>
+        `;
+        productListEl.appendChild(div);
       });
-  
-      row.innerHTML = `
-        <input list="materialsList${i}" class="r-material" data-i="${i}" value="${r.name || ''}" placeholder="Search or select material">
-        <datalist id="materialsList${i}">${opts}</datalist>
-  
-        <input class="r-pcs" data-i="${i}" type="number" min="0" value="${r.pcs||''}" placeholder="PCS" />
-        <input class="r-desc" data-i="${i}" placeholder="Description" value="${r.desc||''}" />
-        <input class="r-gsm" data-i="${i}" placeholder="GSM" value="${r.gsm||''}" />
-        <input class="r-price" data-i="${i}" type="number" step="0.01" value="${r.price||''}" placeholder="₱" />
-        <div style="width:90px;font-weight:700;">₱ <span class="per-sheet">${fmt(computePerSheet(r.price, r.pcs))}</span></div>
-        <div class="row-actions">
-          <button class="btn ghost small" data-save="${i}">Save</button>
-          <button class="btn ghost small" data-del="${i}">Delete</button>
-        </div>
-      `;
-      rowsContainer.appendChild(row);
-    });
-  
-    rowsContainer.querySelectorAll(".r-material").forEach(inp => {
-      inp.addEventListener("change", () => {
-        const i = inp.dataset.i;
-        const prod = products.find(p => p.name.toLowerCase() === inp.value.toLowerCase());
-        if (prod) {
-          const priceInput = rowsContainer.querySelector(`.r-price[data-i="${i}"]`);
-          const gsmInput = rowsContainer.querySelector(`.r-gsm[data-i="${i}"]`);
-          priceInput.value = prod.price;
-          gsmInput.value = prod.gsm || "";
-          rows[i].name = prod.name;
-          rows[i].gsm = prod.gsm || "";
-          rows[i].price = prod.price;
-          rows[i].materialId = products.indexOf(prod);
+      totalCountEl.textContent = filtered.length;
+
+      // Attach event listeners to edit buttons
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.onclick = () => {
+          const idx = Number(btn.dataset.edit);
+          const filteredList = products.filter(p => p.name.toLowerCase().includes((searchInput.value||"").toLowerCase()) || (p.gsm && p.gsm.toLowerCase().includes((searchInput.value||"").toLowerCase())));
+          const prod = filteredList[idx];
+          const originalIndex = products.findIndex(x => x.name === prod.name && x.gsm === prod.gsm && x.price === prod.price);
+          if(originalIndex > -1){
+            productNameEl.value = products[originalIndex].name;
+            productGSMEl.value = products[originalIndex].gsm || "";
+            productPriceEl.value = products[originalIndex].price || "";
+            addUpdateBtn.dataset.editIndex = originalIndex;
+            addUpdateBtn.textContent = "Update Product";
+            window.scrollTo({top:0,behavior:"smooth"});
+          }
+        };
+      });
+    }
+
+    searchInput && searchInput.addEventListener('input', renderProducts);
+
+    addUpdateBtn.onclick = () => {
+      const name = (productNameEl.value||"").trim();
+      const gsm = (productGSMEl.value||"").trim();
+      const price = parseFloat(productPriceEl.value) || 0;
+      if(!name) return alert("Enter product name");
+      const data = { name, gsm, price };
+      if(addUpdateBtn.dataset.editIndex){
+        products[addUpdateBtn.dataset.editIndex] = data;
+        delete addUpdateBtn.dataset.editIndex;
+        addUpdateBtn.textContent = "Add / Update";
+      } else products.push(data);
+      productNameEl.value = productGSMEl.value = productPriceEl.value = "";
+      saveProducts();
+    };
+
+    clearAllBtn.onclick = () => {
+      if(confirm("Clear all products?")) {
+        products = [];
+        saveProducts();
+      }
+    };
+
+    backToFullBtn.onclick = () => {
+      // scroll back behavior (keeps UI simple)
+      document.querySelector('#materials-calculator').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    renderProducts();
+
+    /**************************************************************************
+     * Rows / Materials
+     **************************************************************************/
+    let rows = JSON.parse(localStorage.getItem(ROWS_KEY) || "[]");
+    const rowsContainer = document.getElementById("rowsContainer");
+    const addRowBtn = document.getElementById("addRowBtn");
+    const clearRowsBtn = document.getElementById("clearRowsBtn");
+
+    function saveRows(){
+      localStorage.setItem(ROWS_KEY, JSON.stringify(rows));
+      computeAll();
+      renderRows();
+    }
+
+    // computePerPiece = totalPrice ÷ pcs (division)
+    function computePerPiece(totalPrice, pcs){
+      const p = Number(totalPrice) || 0;
+      const q = Number(pcs) || 0;
+      if(q === 0) return 0;
+      return p / q;
+    }
+
+    function renderRows(){
+      rowsContainer.innerHTML = "";
+      rows.forEach((r, i) => {
+        // ensure properties
+        if (typeof r.tax === "undefined") r.tax = 0;
+        if (typeof r.pcs === "undefined") r.pcs = 0;
+        if (typeof r.price === "undefined") r.price = 0;
+
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "calc-row";
+
+        // build datalist options for product suggestions
+        let opts = "";
+        products.forEach((p, idx) => {
+          opts += `<option value="${escapeHtml(p.name)}" data-idx="${idx}">₱${fmt(p.price)} (${escapeHtml(p.gsm||'')})</option>`;
+        });
+
+        rowDiv.innerHTML = `
+          <input list="materialsList${i}" class="r-material" data-i="${i}" value="${escapeHtml(r.name || '')}" placeholder="Material name" style="min-width:160px" />
+          <datalist id="materialsList${i}">${opts}</datalist>
+
+          <input class="r-pcs" data-i="${i}" type="number" min="0" value="${r.pcs||0}" placeholder="PCS" style="width:80px" />
+          <input class="r-desc" data-i="${i}" placeholder="Description" value="${escapeHtml(r.desc||'')}" style="min-width:140px" />
+          <input class="r-gsm" data-i="${i}" placeholder="GSM" value="${escapeHtml(r.gsm||'')}" style="width:90px" />
+          <input class="r-price" data-i="${i}" type="number" step="0.01" value="${r.price||0}" placeholder="Total Price (₱)" style="width:120px" />
+          <input class="r-tax" data-i="${i}" type="number" step="0.01" min="0" value="${r.tax||0}" placeholder="Tax %" style="width:90px" />
+          <div style="width:150px;font-weight:700">Per-piece: ₱ <span class="per-sheet">${fmt(computePerPiece(r.price, r.pcs))}</span></div>
+          <div class="row-actions">
+            <button class="btn ghost small save-btn" data-save="${i}">Save</button>
+            <button class="btn ghost small delete-btn" data-del="${i}">Delete</button>
+          </div>
+        `;
+        rowsContainer.appendChild(rowDiv);
+      });
+
+      // Attach event listeners for inputs
+      document.querySelectorAll(".r-material").forEach(inp => {
+        inp.addEventListener("change", (e) => {
+          const i = Number(inp.dataset.i);
+          const val = inp.value || "";
+          const prod = products.find(p => p.name.toLowerCase() === val.toLowerCase());
+          if(prod){
+            // autofill price and gsm
+            const priceInput = rowsContainer.querySelector(`.r-price[data-i="${i}"]`);
+            const gsmInput = rowsContainer.querySelector(`.r-gsm[data-i="${i}"]`);
+            priceInput.value = prod.price;
+            gsmInput.value = prod.gsm || "";
+            rows[i].name = prod.name;
+            rows[i].gsm = prod.gsm || "";
+            rows[i].price = prod.price;
+            rows[i].materialId = products.indexOf(prod);
+            saveRows();
+          } else {
+            rows[i].name = val;
+            saveRows();
+          }
+        });
+      });
+
+      // Attach event listeners for save buttons
+      document.querySelectorAll(".save-btn").forEach(btn => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.save);
+          const box = btn.closest(".calc-row");
+          rows[i].pcs = Number(box.querySelector(".r-pcs").value) || 0;
+          rows[i].desc = box.querySelector(".r-desc").value;
+          rows[i].gsm = box.querySelector(".r-gsm").value;
+          rows[i].price = Number(box.querySelector(".r-price").value) || 0;
+          rows[i].name = box.querySelector(".r-material").value;
+          rows[i].tax = Number(box.querySelector(".r-tax").value) || 0;
           saveRows();
-          computeAll();
-        }
+          renderRows();
+        };
       });
-    });
-  
-    rowsContainer.querySelectorAll("[data-save]").forEach(btn => {
-      btn.onclick = () => {
-        const i = btn.dataset.save;
-        const box = btn.closest(".calc-row");
-        rows[i].pcs = Number(box.querySelector(".r-pcs").value) || 0;
-        rows[i].desc = box.querySelector(".r-desc").value;
-        rows[i].gsm = box.querySelector(".r-gsm").value;
-        rows[i].price = Number(box.querySelector(".r-price").value) || 0;
-        rows[i].name = box.querySelector(".r-material").value;
+
+      // Attach event listeners for delete buttons
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.del);
+          if(confirm("Delete this row?")){
+            rows.splice(i,1);
+            saveRows();
+            renderRows();
+          }
+        };
+      });
+
+      // Attach event listeners for live input updates
+      document.querySelectorAll(".r-price, .r-pcs, .r-tax").forEach(inp=>{
+        inp.addEventListener("input", () => {
+          const idx = Number(inp.dataset.i);
+          const box = inp.closest(".calc-row");
+          const priceVal = Number(box.querySelector(".r-price").value) || 0;
+          const pcsVal = Number(box.querySelector(".r-pcs").value) || 0;
+          const taxVal = Number(box.querySelector(".r-tax").value) || 0;
+          rows[idx].price = priceVal;
+          rows[idx].pcs = pcsVal;
+          rows[idx].tax = taxVal;
+          const perEl = box.querySelector(".per-sheet");
+          if(perEl) perEl.textContent = fmt(computePerPiece(priceVal, pcsVal));
+          saveRows();
+        });
+      });
+    }
+
+    addRowBtn.onclick = () => {
+      rows.push({ name:"", pcs:0, desc:"", price:0, gsm:"", tax:0, materialId:null });
+      renderRows();
+      saveRows();
+      // focus newly added row's name input
+      setTimeout(()=> {
+        const last = rowsContainer.querySelectorAll(".r-material");
+        if(last.length) last[last.length-1].focus();
+      }, 60);
+    };
+
+    clearRowsBtn.onclick = () => {
+      if(confirm("Clear all rows?")){
+        rows = [];
         saveRows();
         renderRows();
-      };
-    });
-  
-    rowsContainer.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const i = btn.dataset.del;
-        rows.splice(i,1); saveRows(); renderRows();
-      };
-    });
-  }
-  
-  function computeAll() {
-    let total = 0;
-    rows.forEach((r,i)=>{
-      const per = computePerSheet(r.price, r.pcs);
-      total += per;
-      const el = rowsContainer.querySelectorAll(".per-sheet")[i];
-      if(el) el.textContent = fmt(per);
-    });
-  
-    // Calculate taxes as percentages of materials total
-    const materialsTotal = total;
-    const materialsTaxPercent = materialsTax;
-    const materialsTaxAmount = materialsTotal * (materialsTaxPercent / 100);
-    const grandTotal = materialsTotal + materialsTaxAmount;
-    
-    materialsTotalEl.textContent = fmt(materialsTotal);
-    totalWithTaxEl.textContent = fmt(grandTotal);
-    computeMarkupForAll(materialsTotal, materialsTaxAmount, markupTax);
-  }
-  
-  function computeMarkupForAll(materialsTotal, materialsTaxAmount, markupTax){
-    markupContainer.innerHTML = "";
-    if(rows.length===0){ markupContainer.innerHTML = '<div class="muted">No rows</div>'; return; }
-    
-    // Calculate markup based on materials total (excluding tax)
-    let total10=0,total20=0,total30=0;
-    rows.forEach((r,i)=>{
-      const base = computePerSheet(r.price, r.pcs);
-      const name = r.name || "Unnamed";
-      
-      // Apply markup percentages
-      const m10 = base*1.1, m20 = base*1.2, m30 = base*1.3;
-      
-      // Apply markup tax to the markup results
-      const m10WithTax = m10 * (1 + markupTax/100);
-      const m20WithTax = m20 * (1 + markupTax/100);
-      const m30WithTax = m30 * (1 + markupTax/100);
-      
-      total10+=m10WithTax; total20+=m20WithTax; total30+=m30WithTax;
-      
-      const div=document.createElement("div");
-      div.className="markup-item";
-      div.innerHTML = `
-        <div>${name}: </div>
-        <div>10%: ₱${fmt(m10WithTax)} | 20%: ₱${fmt(m20WithTax)} | 30%: ₱${fmt(m30WithTax)}</div>
-      `;
-      markupContainer.appendChild(div);
-    });
-  }
-  
-  addRowBtn.onclick = () => {
-    rows.push({ name:"", pcs:"", desc:"", price:"", materialId:null });
+      }
+    };
+
+    // initialize rows UI
     renderRows();
-    saveRows();
-  };
-  
-  // Show section function
-  function showSection(sectionId) {
-    // Hide all cards
-    document.querySelectorAll('.card').forEach(card => {
-      card.classList.remove('active');
-    });
-    
-    // Show selected card
-    const section = document.getElementById(sectionId);
-    if (section) {
-      section.classList.add('active');
+
+    /**************************************************************************
+     * Computations (materials summary & markup)
+     **************************************************************************/
+    const materialsTableBody = document.getElementById("materialsTableBody");
+    const totalPerPieceCell = document.getElementById("totalPerPieceCell");
+    const totalTaxCell = document.getElementById("totalTaxCell");
+    const grandTotalWithTaxEl = document.getElementById("grandTotalWithTax");
+
+    function computeAll(){
+      // build materials table
+      materialsTableBody.innerHTML = "";
+      let totalPerPieceSum = 0; // sum of per-piece? We'll present as sum of per-piece values (user requested earlier)
+      // but more importantly we need base totals and taxes
+      let totalTax = 0;
+      let totalWithTax = 0;
+
+      rows.forEach((r, i) => {
+        const totalPrice = Number(r.price) || 0; // treated as batch total
+        const pcs = Number(r.pcs) || 0;
+        const perPiece = computePerPiece(totalPrice, pcs);
+        const taxPercent = Number(r.tax) || 0;
+        const taxAmount = totalPrice * (taxPercent / 100);
+        const withTax = totalPrice + taxAmount;
+
+        totalPerPieceSum += perPiece || 0;
+        totalTax += taxAmount;
+        totalWithTax += withTax;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(r.name || "Unnamed")}</td>
+          <td class="center">${pcs}</td>
+          <td class="right">₱${fmt(totalPrice)}</td>
+          <td class="right">₱${fmt(perPiece)}</td>
+          <td class="center"><input type="number" id="mat-tax-${i}" value="${r.tax||0}" style="width:70px;border-radius:6px;padding:4px" /></td>
+          <td id="mat-with-tax-${i}" class="right">₱${fmt(withTax)}</td>
+        `;
+        materialsTableBody.appendChild(tr);
+
+        // bind tax input inside table row to keep it in sync
+        const taxInput = tr.querySelector(`#mat-tax-${i}`);
+        taxInput.addEventListener("input", () => {
+          const val = parseFloat(taxInput.value) || 0;
+          rows[i].tax = val;
+          saveRows();
+        });
+      });
+
+      // recompute totals after possible tax edits
+      let recomputedTax = 0;
+      let recomputedWith = 0;
+      rows.forEach((r, i) => {
+        const totalPrice = Number(r.price) || 0;
+        const taxPercent = Number(r.tax) || 0;
+        const taxAmount = totalPrice * (taxPercent/100);
+        const withTax = totalPrice + taxAmount;
+        recomputedTax += taxAmount;
+        recomputedWith += withTax;
+        // update row displayed withTax
+        const cell = document.getElementById(`mat-with-tax-${i}`);
+        if(cell) cell.textContent = `₱${fmt(withTax)}`;
+      });
+
+      totalPerPieceCell.textContent = `₱${fmt(totalPerPieceSum)}`;
+      totalTaxCell.textContent = `₱${fmt(recomputedTax)}`;
+      grandTotalWithTaxEl.textContent = `₱${fmt(recomputedWith)}`;
+
+      // recompute markups
+      computeMarkup(recomputedWith);
     }
-    
-    // Scroll to top
-    window.scrollTo(0, 0);
-  }
-  
-  renderRows();
-  computeAll();
+
+    // call computeAll whenever rows change
+    function computeMarkup(baseTotalWithTax){
+      const tbody = document.getElementById("markupContainer");
+      const t10 = document.getElementById("total10");
+      const t20 = document.getElementById("total20");
+      const t30 = document.getElementById("total30");
+      tbody.innerHTML = "";
+
+      if(rows.length === 0){
+        tbody.innerHTML = `<tr><td colspan="4" class="muted-small">No rows</td></tr>`;
+        t10.textContent = t20.textContent = t30.textContent = "₱0.00";
+        return;
+      }
+
+      let total10 = 0, total20 = 0, total30 = 0;
+      rows.forEach(r => {
+        const totalPrice = Number(r.price) || 0;
+        const taxPercent = Number(r.tax) || 0;
+        const withTax = totalPrice + (totalPrice * (taxPercent/100));
+        const m10 = withTax * 1.10;
+        const m20 = withTax * 1.20;
+        const m30 = withTax * 1.30;
+        total10 += m10;
+        total20 += m20;
+        total30 += m30;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(r.name || "Unnamed")}</td>
+          <td class="right">₱${fmt(m10)}</td>
+          <td class="right">₱${fmt(m20)}</td>
+          <td class="right">₱${fmt(m30)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      t10.textContent = `₱${fmt(total10)}`;
+      t20.textContent = `₱${fmt(total20)}`;
+      t30.textContent = `₱${fmt(total30)}`;
+    }
+
+    // ensure computeAll called whenever rows change
+    function recomputeAndRender(){
+      computeAll();
+      renderRows(); // keep per-row UI in sync
+    }
+
+    // run initial compute
+    computeAll();
+
+    // watch storage-driven updates occasionally (if user edits quickly)
+    // we'll just call computeAll on saveRows which is invoked by UI.
+
+    /**************************************************************************
+     * Toggle behavior (Show Markup / Back to Materials)
+     **************************************************************************/
+    const toggleBtn = document.getElementById("toggleRightBtn");
+    const materialsCalcSection = document.getElementById("materials-calculator");
+    let rightVisible = false;
+    toggleBtn.addEventListener("click", () => {
+      rightVisible = !rightVisible;
+      if(rightVisible){
+        materialsCalcSection.classList.add("full-right");
+        toggleBtn.textContent = "Back to Materials";
+        // scroll markup into view
+        const markup = document.querySelector('.markup-section');
+        if(markup) markup.scrollIntoView({behavior:'smooth', block:'start'});
+      } else {
+        materialsCalcSection.classList.remove("full-right");
+        toggleBtn.textContent = "Show Markup";
+        const calc = document.querySelector('.calc-summary');
+        if(calc) calc.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+
+    /**************************************************************************
+     * Export / Print (PDF)
+     * - Build a printable HTML based on current rows and products
+     * - Combine similar names logic included (fuzzy grouping)
+     **************************************************************************/
+    document.getElementById("exportBtn").addEventListener("click", exportPDFView);
+
+    // normalize a name for grouping (lowercase, strip non-alphanum)
+    function normalizeName(s){
+      return (s||"").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
+    // simple Levenshtein distance for small fuzzy grouping
+    function levenshtein(a,b){
+      if(a===b) return 0;
+      const m = a.length, n = b.length;
+      if(m===0) return n;
+      if(n===0) return m;
+      const dp = Array.from({length:m+1}, ()=> new Array(n+1).fill(0));
+      for(let i=0;i<=m;i++) dp[i][0]=i;
+      for(let j=0;j<=n;j++) dp[0][j]=j;
+      for(let i=1;i<=m;i++){
+        for(let j=1;j<=n;j++){
+          const cost = a[i-1]===b[j-1]?0:1;
+          dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+        }
+      }
+      return dp[m][n];
+    }
+
+    // group similar names: merge if exact or normalized small distance
+    function combineSimilarRows(rows){
+      // returns array of grouped rows: { name, totalPrice, pcs, taxSum? we will sum totals and average tax if wanted }
+      const groups = [];
+      rows.forEach(r=>{
+        const nm = normalizeName(r.name||"");
+        // try to find close group
+        let foundIndex = -1;
+        for(let i=0;i<groups.length;i++){
+          const gnm = normalizeName(groups[i].name);
+          if(gnm === nm){
+            foundIndex = i; break;
+          }
+          // fuzzy threshold: allow small edit distances relative to length
+          const dist = levenshtein(gnm, nm);
+          const maxAllowed = Math.floor(Math.max(gnm.length, nm.length) * 0.15) + 1; // 15% +1
+          if(dist <= maxAllowed){
+            foundIndex = i; break;
+          }
+        }
+        if(foundIndex === -1){
+          groups.push({ name: r.name || "Unnamed", totalPrice: Number(r.price||0), pcs: Number(r.pcs||0), tax: Number(r.tax||0) });
+        } else {
+          // merge: sum price, sum pcs, compute weighted avg tax
+          const g = groups[foundIndex];
+          const prevTotal = g.totalPrice;
+          const prevPcs = g.pcs;
+          const prevTax = g.tax;
+          const newTotal = prevTotal + (Number(r.price||0));
+          const newPcs = prevPcs + (Number(r.pcs||0));
+          // weighted tax by price
+          const weightedTax = (prevTax*prevTotal + Number(r.tax||0)*Number(r.price||0)) / (newTotal || 1);
+          g.name = g.name.length >= r.name.length ? g.name : r.name; // keep longer descriptive name
+          g.totalPrice = newTotal;
+          g.pcs = newPcs;
+          g.tax = weightedTax;
+        }
+      });
+      return groups;
+    }
+
+    function buildPrintableHTML(){
+      // header info
+      const generatedAt = new Date().toLocaleString();
+      const contact = (document.getElementById("contactNumber").value || "").trim();
+
+      // combine similar rows
+      const grouped = combineSimilarRows(rows);
+
+      // build HTML content
+      let html = `
+        <div style="padding:18px;font-family:Arial,Helvetica,sans-serif;color:#111">
+          <h2 style="margin:0 0 8px 0;color:black">Materials & Markup Report</h2>
+          <div style="margin-bottom:8px;color:#555">Generated: ${escapeHtml(generatedAt)} ${contact? '| Contact: '+escapeHtml(contact):''}</div>
+
+          <table class="print-table" style="width:100%;margin-bottom:10px;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="background:#0b63e6;color:#fff;padding:8px">Material</th>
+                <th style="background:#0b63e6;color:#fff;padding:8px">Total Price (₱)</th>
+                <th style="background:#0b63e6;color:#fff;padding:8px">PCS</th>
+                <th style="background:#0b63e6;color:#fff;padding:8px">Per-piece (₱)</th>
+                <th style="background:#0b63e6;color:#fff;padding:8px">Tax (%)</th>
+                <th style="background:#0b63e6;color:#fff;padding:8px">Total w/ Tax (₱)</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      let grandTotalWithTax = 0;
+      let grandTax = 0;
+
+      grouped.forEach(g=>{
+        const total = Number(g.totalPrice||0);
+        const pcs = Number(g.pcs||0);
+        const perPiece = computePerPiece(total, pcs);
+        const taxPercent = Number(g.tax||0);
+        const taxAmt = total * (taxPercent/100);
+        const withTax = total + taxAmt;
+        grandTax += taxAmt;
+        grandTotalWithTax += withTax;
+
+        html += `
+          <tr>
+            <td>${escapeHtml(g.name)}</td>
+            <td style="text-align:right">₱${fmt(total)}</td>
+            <td style="text-align:center">${pcs}</td>
+            <td style="text-align:right">₱${fmt(perPiece)}</td>
+            <td style="text-align:center">${fmt(taxPercent)}</td>
+            <td style="text-align:right">₱${fmt(withTax)}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+            <tfoot>
+              <tr>
+                <td style="text-align:right;font-weight:700" colspan="4">Total Tax:</td>
+                <td style="text-align:right;font-weight:700" colspan="2">₱${fmt(grandTax)}</td>
+              </tr>
+              <tr>
+                <td style="text-align:right;font-weight:800" colspan="4">Grand Total (with tax):</td>
+                <td style="text-align:right;font-weight:800" colspan="2">₱${fmt(grandTotalWithTax)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <h3 style="margin-top:12px">Markup Summary (10% / 20% / 30%)</h3>
+          <table class="print-table" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="padding:8px">Material</th>
+                <th style="padding:8px">10%</th>
+                <th style="padding:8px">20%</th>
+                <th style="padding:8px">30%</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      // for markup rows, we base on grouped items
+      let grand10 = 0, grand20 = 0, grand30 = 0;
+      grouped.forEach(g=>{
+        const total = Number(g.totalPrice||0);
+        const taxPercent = Number(g.tax||0);
+        const withTax = total + (total * (taxPercent/100));
+        const m10 = withTax * 1.10;
+        const m20 = withTax * 1.20;
+        const m30 = withTax * 1.30;
+        grand10 += m10; grand20 += m20; grand30 += m30;
+
+        html += `
+          <tr>
+            <td>${escapeHtml(g.name)}</td>
+            <td style="text-align:right">₱${fmt(m10)}</td>
+            <td style="text-align:right">₱${fmt(m20)}</td>
+            <td style="text-align:right">₱${fmt(m30)}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+            <tfoot>
+              <tr>
+                <td style="font-weight:700">Grand Totals</td>
+                <td style="text-align:right;font-weight:700">₱${fmt(grand10)}</td>
+                <td style="text-align:right;font-weight:700">₱${fmt(grand20)}</td>
+                <td style="text-align:right;font-weight:700">₱${fmt(grand30)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <div style="margin-top:18px;color:#777;font-size:12px">Report generated by Product & Materials Calculator</div>
+        </div>
+      `;
+      return html;
+    }
+
+    function exportPDFView(){
+      // Build print content & open print
+      // Note: pdf-blue placeholder replaced within CSS (we'll inline styles simply)
+      const printHolder = document.getElementById("printHolder");
+      printHolder.style.display = "block";
+      const printableHTML = buildPrintableHTML();
+      // set content
+      printHolder.innerHTML = printableHTML;
+      // open print
+      window.print();
+      // hide afterwards
+      setTimeout(()=> {
+        printHolder.style.display = "none";
+      }, 500);
+    }
+
+    /**************************************************************************
+     * Helper: escapeHtml
+     **************************************************************************/
+    function escapeHtml(unsafe) {
+      if (unsafe == null) return "";
+      return String(unsafe)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    /**************************************************************************
+     * Persistence & Init
+     **************************************************************************/
+    // ensure initial UI binds and compute
+    renderRows();
+    computeAll();
+
+    // observe local storage changes? (not necessary - single page)
+    // but we ensure to recompute when products/rows are saved (saveRows / saveProducts do it)
+
+    /**************************************************************************
+     * Extra UX: keyboard shortcuts (optional)
+     **************************************************************************/
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        saveRows();
+        saveProducts();
+        alert("Saved to localStorage");
+      }
+    });
+
   </script>
 </body>
 </html>
