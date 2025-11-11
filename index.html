@@ -61,6 +61,11 @@
       border-radius: 12px;
       padding: 15px;
       box-shadow: 0 4px 12px rgba(2,6,23,0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(2,6,23,0.7);
     }
     .card h2 { 
       margin-top: 0; 
@@ -91,11 +96,14 @@
       color: #042018;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, transform 0.2s;
       font-size: 14px;
       min-width: 80px;
     }
-    .btn:hover { opacity: 0.9; }
+    .btn:hover { 
+      opacity: 0.9; 
+      transform: scale(1.05);
+    }
     .btn.ghost {
       background: transparent;
       border: 1px solid rgba(255,255,255,0.1);
@@ -225,6 +233,160 @@
       padding: 10px;
     }
     
+    /* Navigation buttons - Only show on mobile */
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px 0;
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+      background: var(--bg);
+      padding: 10px 0;
+      border-radius: 12px;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--accent);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      min-width: 120px;
+    }
+    .nav-btn:hover {
+      background: rgba(110, 231, 183, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    /* Tax input styling */
+    .tax-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .tax-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .tax-column label {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .tax-column input {
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      font-size: 14px;
+    }
+    
+    /* Custom layout for the specific requirement */
+    .left-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .right-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .tax-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .tax-input-group label {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .tax-input-group input {
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      font-size: 14px;
+    }
+    
+    .total-display {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    
+    /* Search box styling */
+    .search-container {
+      margin-bottom: 10px;
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 30px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: inherit;
+      font-size: 14px;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+    
+    /* Hide cards on mobile except when active */
+    @media (max-width: 768px) {
+      .card {
+        display: none;
+      }
+      
+      .card.active {
+        display: block;
+      }
+      
+      .nav-buttons {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(14, 20, 35, 0.95);
+        backdrop-filter: blur(10px);
+        margin: 0;
+        padding: 15px 0;
+        border-radius: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      }
+      
+      .wrap {
+        padding-top: 80px;
+      }
+    }
+    
+    /* Desktop view */
+    @media (min-width: 769px) {
+      .nav-buttons {
+        display: none;
+      }
+    }
+    
     /* Mobile adjustments */
     @media (max-width: 480px) {
       .wrap {
@@ -284,9 +446,19 @@
       <div class="chip" style="color: var(--accent); font-size: 12px;">Auto-save: ON</div>
     </header>
 
+    <!-- Navigation buttons - Only visible on mobile -->
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="showSection('product-manager')">Product Manager</button>
+      <button class="nav-btn" onclick="showSection('materials-calculator')">Materials Calculator</button>
+    </div>
+
     <div class="grid">
-      <section class="card">
+      <section id="product-manager" class="card active">
         <h2>Product Manager</h2>
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search products..." />
+        </div>
         <div class="controls">
           <input id="productName" placeholder="Product name (e.g. girl)" />
           <input id="productGSM" type="text" placeholder="GSM (e.g. 180gsm)" />
@@ -301,7 +473,7 @@
         <div id="productList" class="list"></div>
       </section>
 
-      <section class="card">
+      <section id="materials-calculator" class="card">
         <h2>📘 Materials Calculator</h2>
         <table class="table">
           <thead>
@@ -322,14 +494,31 @@
         <div class="bottom">
           <div class="calc-summary">
             <div><strong>Total Materials:</strong> ₱ <span id="materialsTotal">0.00</span></div>
-            <div><strong>Tax (₱):</strong> ₱ <span id="taxDisplay">0.00</span></div>
-            <div class="total-divider"></div>
-            <div><strong>Total + Tax:</strong> ₱ <span id="totalWithTax">0.00</span></div>
+            
+            <!-- Left side: Materials Tax -->
+            <div class="left-section">
+              <div class="tax-input-group">
+                <label>Materials Tax (%)</label>
+                <input type="number" id="materialsTax" min="0" step="0.01" placeholder="Enter tax percentage" />
+              </div>
+              
+              <div class="total-display">
+                <strong>Total (₱):</strong> ₱ <span id="totalWithTax">0.00</span>
+              </div>
+            </div>
           </div>
 
           <div class="markup-section">
             <div><strong>Markup Computations</strong></div>
             <div id="markupContainer"></div>
+            
+            <!-- Right side: Markup Tax -->
+            <div class="right-section">
+              <div class="tax-input-group">
+                <label>Markup Tax (%)</label>
+                <input type="number" id="markupTax" min="0" step="0.01" placeholder="Enter tax percentage" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -352,6 +541,7 @@
   const addUpdateBtn = document.getElementById("addUpdateBtn");
   const clearAllBtn = document.getElementById("clearAllBtn");
   const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+  const searchInput = document.getElementById("searchInput");
   
   function saveProducts() {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
@@ -361,8 +551,15 @@
   }
   
   function renderProducts() {
+    // Filter products based on search term
+    const searchTerm = searchInput.value.toLowerCase();
+    const filteredProducts = products.filter(p => 
+      p.name.toLowerCase().includes(searchTerm) || 
+      (p.gsm && p.gsm.toLowerCase().includes(searchTerm))
+    );
+    
     productList.innerHTML = "";
-    products.forEach((p, i) => {
+    filteredProducts.forEach((p, i) => {
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `
@@ -375,19 +572,28 @@
       `;
       productList.appendChild(div);
     });
-    totalCount.textContent = products.length;
+    totalCount.textContent = filteredProducts.length;
   
     productList.querySelectorAll("[data-edit]").forEach(btn => {
       btn.onclick = () => {
         const i = btn.dataset.edit;
-        productName.value = products[i].name;
-        productGSM.value = products[i].gsm || "";
-        productPrice.value = products[i].price;
-        addUpdateBtn.dataset.editIndex = i;
+        // Adjust index to match original array
+        const originalIndex = products.findIndex(p => 
+          p.name === filteredProducts[i].name && 
+          p.gsm === filteredProducts[i].gsm && 
+          p.price === filteredProducts[i].price
+        );
+        productName.value = products[originalIndex].name;
+        productGSM.value = products[originalIndex].gsm || "";
+        productPrice.value = products[originalIndex].price;
+        addUpdateBtn.dataset.editIndex = originalIndex;
         addUpdateBtn.textContent = "Update Product";
       };
     });
   }
+  
+  // Add search functionality
+  searchInput.addEventListener('input', renderProducts);
   
   addUpdateBtn.onclick = () => {
     const name = productName.value.trim();
@@ -413,7 +619,16 @@
   
   deleteSelectedBtn.onclick = () => {
     const checked = [...productList.querySelectorAll("input[type=checkbox]:checked")];
-    checked.sort((a,b)=>b.dataset.index - a.dataset.index).forEach(ch => products.splice(ch.dataset.index,1));
+    checked.sort((a,b)=>b.dataset.index - a.dataset.index).forEach(ch => {
+      const index = ch.dataset.index;
+      // Find actual index in original array
+      const originalIndex = products.findIndex(p => 
+        p.name === products[index].name && 
+        p.gsm === products[index].gsm && 
+        p.price === products[index].price
+      );
+      products.splice(originalIndex, 1);
+    });
     saveProducts();
   };
   
@@ -426,18 +641,26 @@
   const addRowBtn = document.getElementById("addRowBtn");
   const materialsTotalEl = document.getElementById("materialsTotal");
   const totalWithTaxEl = document.getElementById("totalWithTax");
-  const taxDisplay = document.getElementById("taxDisplay");
   const markupContainer = document.getElementById("markupContainer");
   
-  let manualTax = 0;
-  const taxInput = document.createElement("input");
-  taxInput.type = "number";
-  taxInput.min = "0";
-  taxInput.step = "0.01";
-  taxInput.placeholder = "Enter Tax ₱";
-  taxInput.style.cssText = "width:100%;padding:6px;border-radius:6px;margin-top:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:white;";
-  taxDisplay.parentElement.appendChild(taxInput);
-  taxInput.oninput = () => { manualTax = parseFloat(taxInput.value) || 0; computeAll(); };
+  // Separate tax variables
+  let materialsTax = 0;
+  let markupTax = 0;
+  
+  // Get tax input elements
+  const materialsTaxInput = document.getElementById("materialsTax");
+  const markupTaxInput = document.getElementById("markupTax");
+  
+  // Initialize tax inputs
+  materialsTaxInput.oninput = () => { 
+    materialsTax = parseFloat(materialsTaxInput.value) || 0; 
+    computeAll(); 
+  };
+  
+  markupTaxInput.oninput = () => { 
+    markupTax = parseFloat(markupTaxInput.value) || 0; 
+    computeAll(); 
+  };
   
   function saveRows() {
     localStorage.setItem(ROWS_KEY, JSON.stringify(rows));
@@ -527,28 +750,42 @@
       if(el) el.textContent = fmt(per);
     });
   
-    const tax = manualTax;
-    taxDisplay.textContent = fmt(tax);
-    const grand = total + tax;
-    materialsTotalEl.textContent = fmt(total);
-    totalWithTaxEl.textContent = fmt(grand);
-    computeMarkupForAll(total, tax);
+    // Calculate taxes as percentages of materials total
+    const materialsTotal = total;
+    const materialsTaxPercent = materialsTax;
+    const materialsTaxAmount = materialsTotal * (materialsTaxPercent / 100);
+    const grandTotal = materialsTotal + materialsTaxAmount;
+    
+    materialsTotalEl.textContent = fmt(materialsTotal);
+    totalWithTaxEl.textContent = fmt(grandTotal);
+    computeMarkupForAll(materialsTotal, materialsTaxAmount, markupTax);
   }
   
-  function computeMarkupForAll(total, tax){
+  function computeMarkupForAll(materialsTotal, materialsTaxAmount, markupTax){
     markupContainer.innerHTML = "";
     if(rows.length===0){ markupContainer.innerHTML = '<div class="muted">No rows</div>'; return; }
+    
+    // Calculate markup based on materials total (excluding tax)
     let total10=0,total20=0,total30=0;
     rows.forEach((r,i)=>{
       const base = computePerSheet(r.price, r.pcs);
       const name = r.name || "Unnamed";
+      
+      // Apply markup percentages
       const m10 = base*1.1, m20 = base*1.2, m30 = base*1.3;
-      total10+=m10; total20+=m20; total30+=m30;
+      
+      // Apply markup tax to the markup results
+      const m10WithTax = m10 * (1 + markupTax/100);
+      const m20WithTax = m20 * (1 + markupTax/100);
+      const m30WithTax = m30 * (1 + markupTax/100);
+      
+      total10+=m10WithTax; total20+=m20WithTax; total30+=m30WithTax;
+      
       const div=document.createElement("div");
       div.className="markup-item";
       div.innerHTML = `
         <div>${name}: </div>
-        <div>10%: ₱${fmt(m10)} | 20%: ₱${fmt(m20)} | 30%: ₱${fmt(m30)}</div>
+        <div>10%: ₱${fmt(m10WithTax)} | 20%: ₱${fmt(m20WithTax)} | 30%: ₱${fmt(m30WithTax)}</div>
       `;
       markupContainer.appendChild(div);
     });
@@ -559,6 +796,23 @@
     renderRows();
     saveRows();
   };
+  
+  // Show section function
+  function showSection(sectionId) {
+    // Hide all cards
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.remove('active');
+    });
+    
+    // Show selected card
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.add('active');
+    }
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+  }
   
   renderRows();
   computeAll();
